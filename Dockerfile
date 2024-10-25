@@ -11,6 +11,10 @@ RUN pip install --upgrade pip && \
 RUN poetry export -f requirements.txt --without-hashes --output requirements.txt \
     && pip install --disable-pip-version-check -r requirements.txt \
     && pip install gunicorn  # Explicitly add Gunicorn
-    
-# Start Gunicorn and vidmergebot in parallel
-CMD python3 -m vidmergebot & gunicorn app:app 
+
+# Copy the start.sh script and make it executable
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Start Gunicorn and vidmergebot in parallel using start.sh
+CMD ["/app/start.sh"]
