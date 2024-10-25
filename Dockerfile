@@ -9,8 +9,8 @@ COPY . .
 RUN pip install --upgrade pip \
     && pip install poetry \
     && poetry export -f requirements.txt --without-hashes --output requirements.txt \
-    && echo "flask" >> requirements.txt \  # Add Flask to requirements
-    && pip install --disable-pip-version-check -r requirements.txt \
+    && echo "flask" >> requirements.txt  # Add Flask to requirements
+RUN pip install --disable-pip-version-check -r requirements.txt \
     && pip install gunicorn 
 
 # Start Gunicorn and vidmergebot in parallel
