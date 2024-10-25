@@ -13,4 +13,4 @@ RUN pip install --upgrade pip \
     && pip install gunicorn 
 
 # Start Gunicorn and vidmergebot in parallel
-CMD ["sh", "-c", "python3 -m vidmergebot & python3 app.py"]
+CMD ["sh", "-c", "python3 -m vidmergebot & python3 vidmergebot/app.py"]
