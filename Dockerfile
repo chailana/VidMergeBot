@@ -16,4 +16,4 @@ RUN poetry export -f requirements.txt --without-hashes --output requirements.txt
 EXPOSE 8000
 
 # Start Gunicorn and vidmergebot in parallel
-CMD gunicorn -b 0.0.0.0:8000 app:app & python3 -m vidmergebot
+CMD gunicorn app:app & python3 -m vidmergebot
