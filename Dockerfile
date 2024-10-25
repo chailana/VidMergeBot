@@ -1,4 +1,4 @@
-FROM ghcr.io/divkix/docker-python-base:latest
+FROM python:3.9-slim
 
 WORKDIR /app
 COPY . .
