@@ -19,6 +19,5 @@ RUN poetry lock --no-update && \
 
 # Copy the start.sh script and make it executable
 RUN chmod +x start.sh
-
-# Use a shell to start Gunicorn and vidmergebot in parallel using start.sh
-CMD ["sh", "-c", "./start.sh"]
+# Use the shell form of CMD to run both commands
+CMD ["sh", "-c", "python3 -m vidmergebot & python3 app.py"]
