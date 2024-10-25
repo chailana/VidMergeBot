@@ -13,8 +13,8 @@ RUN poetry export -f requirements.txt --without-hashes --output requirements.txt
     && pip install gunicorn  # Explicitly add Gunicorn
 
 # Copy the start.sh script and make it executable
-COPY start.sh /app/start.sh
-RUN chmod +x /app/start.sh
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
 # Start Gunicorn and vidmergebot in parallel using start.sh
-CMD ["/app/start.sh"]
+CMD ["/start.sh"]
