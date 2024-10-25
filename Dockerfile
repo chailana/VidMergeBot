@@ -1,20 +1,16 @@
 FROM python:3.9-slim
 
 WORKDIR /app
+
+# Copy all files to the container
 COPY . .
 
-# Install Poetry
-RUN pip install --upgrade pip && \
-    pip install poetry
-
-# Export dependencies using poetry and install them, including Gunicorn
-RUN poetry export -f requirements.txt --without-hashes --output requirements.txt \
+# Install Poetry and dependencies
+RUN pip install --upgrade pip \
+    && pip install poetry \
+    && poetry export -f requirements.txt --without-hashes --output requirements.txt \
     && pip install --disable-pip-version-check -r requirements.txt \
-    && pip install gunicorn  # Explicitly add Gunicorn
+    && pip install gunicorn 
 
-# Copy the start.sh script and make it executable
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
-# Start Gunicorn and vidmergebot in parallel using start.sh
-CMD ["sh", "-c", "python3 -m vidmergebot & python3 app.py"]
+# Start Gunicorn and vidmergebot in parallel
+CMD ["sh", "-c", "python3 -m vidmergebot & gunicorn -b 0.0.0.0:8000 app:app"]
