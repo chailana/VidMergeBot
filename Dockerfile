@@ -13,7 +13,7 @@ RUN pip install --upgrade pip && \
 
 # Install dependencies without using virtualenv
 RUN poetry config virtualenvs.create false && \
-    poetry install --no-root --no-dev  # Install dependencies without the package itself
+    poetry install --no-root --only main  # Use --only main instead of --no-dev
 
 # Copy the rest of the application code
 COPY . .
