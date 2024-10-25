@@ -7,12 +7,13 @@ COPY . .
 RUN pip install --upgrade pip && \
     pip install poetry
 
-# Export dependencies using poetry and install them
+# Export dependencies using poetry and install them, including Gunicorn
 RUN poetry export -f requirements.txt --without-hashes --output requirements.txt \
-    && pip install --disable-pip-version-check -r requirements.txt
+    && pip install --disable-pip-version-check -r requirements.txt \
+    && pip install gunicorn  # Explicitly add Gunicorn
 
-# Expose port 8000 to be accessible from outside the container
+# Expose port 8000
 EXPOSE 8000
 
-# Start both gunicorn for app.py and vidmergebot in parallel
-CMD gunicorn -b 0.0.0.0:8000 app:app
+# Start Gunicorn and vidmergebot in parallel
+CMD gunicorn -b 0.0.0.0:8000 app:app & python3 -m vidmergebot
