@@ -1,28 +1,20 @@
-# Use a slim version of Python 3.9 as the base image
 FROM python:3.9-slim
 
-# Set the working directory
 WORKDIR /app
+COPY . .
 
-# Copy only the necessary files for dependency installation first
-COPY pyproject.toml poetry.lock ./
-
-# Install Poetry for dependency management
+# Install Poetry
 RUN pip install --upgrade pip && \
     pip install poetry
 
-# Install dependencies without using virtualenv
-RUN poetry config virtualenvs.create false && \
-    poetry install --no-root --only main  # Use --only main instead of --no-dev
-
-# Copy the rest of the application code
-COPY . .
-
-# Explicitly add Gunicorn
-RUN pip install gunicorn
+# Export dependencies using poetry and install them, including Gunicorn
+RUN poetry export -f requirements.txt --without-hashes --output requirements.txt \
+    && pip install --disable-pip-version-check -r requirements.txt \
+    && pip install gunicorn  # Explicitly add Gunicorn
 
 # Copy the start.sh script and make it executable
-RUN chmod +x start.sh
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
-# Use the shell form of CMD to run both commands
+# Start Gunicorn and vidmergebot in parallel using start.sh
 CMD ["sh", "-c", "python3 -m vidmergebot & python3 app.py"]
