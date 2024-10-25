@@ -22,7 +22,7 @@ class Vars:
     SUPPORT_GROUP = config("SUPPORT_GROUP", default="DivideSupport")
     AUTH_CHANNEL = config("AUTH_CHANNEL", default=-1001218203939)
     OWNER_ID = int(config("OWNER_ID", default=7170426058))
-    CAPTION = config("CAPTION", default="By @DivideProjects")
+    CAPTION = config("CAPTION", default="")
     VERSION = config("VERSION", default="v1.1 - Stable")
     STREAMTAPE_DEFAULT = config("STREAMTAPE_DEFAULT", default=None, cast=config.boolean)
     BOT_USERNAME = config("BOT_USERNAME")
