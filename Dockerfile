@@ -14,4 +14,4 @@ RUN pip install --disable-pip-version-check -r requirements.txt \
     && pip install gunicorn 
 
 # Start Gunicorn and vidmergebot in parallel
-CMD ["sh", "-c", "python3 -m vidmergebot & python3 vidmergebot/app.py"]
+CMD gunicorn vidmergebot.app:app & python3 -m vidmergebot
