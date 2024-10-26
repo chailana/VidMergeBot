@@ -210,7 +210,11 @@ async def add_vid(c: VidMergeBot, m: Message):
     )
 
    # Save the last message ID for future reference.
-   users_files[chat_id]["last_msg"] = my_msg.id
+   if chat_id not in users_files:
+    users_files[chat_id] = {"vids": {}, "last_msg": None}
+
+# Now you can safely assign the last message ID
+users_files[chat_id]["last_msg"] = my_msg.id
 
 
 @VidMergeBot.on_callback_query(filters.regex("^video."))
