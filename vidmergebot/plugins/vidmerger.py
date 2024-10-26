@@ -174,9 +174,10 @@ async def add_vid(c: VidMergeBot, m: Message):
             )
             return
     except KeyError:
-        pass
+        # Initialize user's video list if it doesn't exist.
+        users_files[chat_id] = {"vids": {}, "last_msg": None}
 
-    # Checks if the file is video or not
+    # Checks if the file is video or not.
     if not (m.video or (m.document and m.document.mime_type.startswith("video/"))):
         await m.reply_text(
             "This is not a Video!\nI need a proper Video to add watermark!",
@@ -200,41 +201,35 @@ async def add_vid(c: VidMergeBot, m: Message):
 
     unique_key = sha1(str(m.id).encode("UTF-8")).hexdigest()
 
-    if chat_id in users_files.keys():
-        await c.delete_messages(chat_id, message_ids=users_files[chat_id]["last_msg"])
-        
-        # Store the message object directly instead of using dictionary-style access.
-        users_files[chat_id]["vids"][unique_key] = m  
-
-    else:
-        users_files[chat_id] = {"vids": {unique_key: m}}
+    # Store the message object directly instead of using dictionary-style access.
+    users_files[chat_id]["vids"][unique_key] = m  
 
     my_msg = await m.reply_text(
         f"Added {len(users_files[chat_id]['vids'])} videos, send another video to start merging.",
         reply_markup=make_added_vids_kb(chat_id),
     )
 
-    users_files[chat_id]["last_msg"] = my_msg.id
-    return
+   # Save the last message ID for future reference.
+   users_files[chat_id]["last_msg"] = my_msg.id
 
 
 @VidMergeBot.on_callback_query(filters.regex("^video."))
 async def video_callback_func(_, q: CallbackQuery):
-    file_unique_id = q.data.split(".")[1]
+   file_unique_id = q.data.split(".")[1]
 
-    # Accessing the message object directly.
-    vfile = users_files[q.from_user.id]["vids"][file_unique_id]
+   # Accessing the message object directly.
+   vfile = users_files[q.from_user.id]["vids"][file_unique_id]
 
-    msg_id = vfile.id  # Use the message ID directly.
+   msg_id = vfile.id  # Use the message ID directly.
 
-    kb = ikb(
-        [
-            [("🗑️ Remove File", f"remove_file.{file_unique_id}")],
-            [("🔙 Back", "back_all_vids")],
-        ],
-    )
+   kb = ikb(
+       [
+           [("🗑️ Remove File", f"remove_file.{file_unique_id}")],
+           [("🔙 Back", "back_all_vids")],
+       ],
+   )
 
-    vid_num = list(users_files[q.from_user.id]["vids"].keys()).index(file_unique_id) + 1
+   vid_num = list(users_files[q.from_user.id]["vids"].keys()).index(file_unique_id) + 1
 
    # Accessing file ID correctly.
    file_id = vfile.video.file_id if vfile.video else vfile.document.file_id
@@ -381,9 +376,10 @@ async def merge_callback_func(c: VidMergeBot, q: CallbackQuery):
    )
 
    file_size = path.getsize(outfile_name)
-   file_name = outfile_name.split("/")[-1]
-
-   if STREAMTAPE_DEFAULT or int(file_size) >= 2097152000:
+   
+# Prepare download link based on size or StreamTape option.
+   
+if STREAMTAPE_DEFAULT or int(file_size) >= 2097152000:
        download_link = await streamtape_upload(
            editable,
            outfile_name,
@@ -391,7 +387,7 @@ async def merge_callback_func(c: VidMergeBot, q: CallbackQuery):
            video_thumbnail,
        )
        
-   else:
+else:
        caption = (
            f"{len(all_videos)} Videos merged successfully!\n"
            f"<b>File Name:</b> <code>{users_files[chat_id]['custom_file_name']}</code>\n"
@@ -399,45 +395,46 @@ async def merge_callback_func(c: VidMergeBot, q: CallbackQuery):
            f"\n\n{Vars.CAPTION}"
        )
 
-       if merge_option in ("file", "video"):
-           c_time = time()
+      if merge_option in ("file", "video"):
+          c_time = time()
 
-           if merge_option == "file":
-               dl = await c.send_document(
-                   chat_id,
-                   outfile_name,
-                   caption=caption,
-                   reply_markup=Constants.support_kb,
-                   progress=progress_for_pyrogram,
-                   progress_args=(
-                       "<b>Uploading Video as a file...</b>",
-                       editable,
-                       c_time,
-                   ),
-                   thumb=video_thumbnail,
-               )
-               download_link = dl.document.file_id
+          if merge_option == "file":
+              dl = await c.send_document(
+                  chat_id,
+                  outfile_name,
+                  caption=caption,
+                  reply_markup=Constants.support_kb,
+                  progress=progress_for_pyrogram,
+                  progress_args=(
+                      "<b>Uploading Video as a file...</b>",
+                      editable,
+                      c_time,
+                  ),
+                  thumb=video_thumbnail,
+              )
+              download_link = dl.document.file_id
             
-           elif merge_option == "video":
-               dl = await c.send_video(
-                   chat_id,
-                   outfile_name,
-                   caption=caption,
-                   reply_markup=Constants.support_kb,
-                   duration=duration,
-                   height=height,
-                   width=width,
-                   thumb=video_thumbnail,
-                   progress=progress_for_pyrogram,
-                   progress_args=(
-                       "<b>Uploading Video as Media...</b>",
-                       editable,
-                       c_time,
-                   ),
-               )
-               download_link = dl.video.file_id
+          elif merge_option == "video":
+              dl = await c.send_video(
+                  chat_id,
+                  outfile_name,
+                  caption=caption,
+                  reply_markup=Constants.support_kb,
+                  duration=duration,
+                  height=height,
+                  width=width,
+                  thumb=video_thumbnail,
+                  progress=progress_for_pyrogram,
+                  progress_args=(
+                      "<b>Uploading Video as Media...</b>",
+                      editable,
+                      c_time,
+                  ),
+              )
+              download_link = dl.video.file_id
 
-           await editable.delete()
+          # Delete the editable message after upload completes.
+          await editable.delete()
 
 # Finalize processing and clean up resources.
-all_videos_keys_listed_as_keys_in_usersfiles_chatid_keys_listed_as_keys_in_usersfiles_chatid_keys_listed_as_keys_in_usersfiles_chatid_keys_listed_as_keys_in_usersfiles_chatid_keys_listed_as_keys_in_usersfiles_chatid_keys_listed_as_keys_in_usersfiles_chatid_keys_listed_as_keys_in_usersfiles_chatid_keys_listed_as_keys_in_usersfiles_chatid.keys()
+# You might want to reset or clear user data here after processing.
